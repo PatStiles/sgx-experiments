@@ -1,0 +1,11 @@
+[submodule "builder"]
+	path = "containerized_geth/builder"
+	url = https://github.com/flashbots/builder.git
+
+[submodule "geth-sgx-gramine"]
+	path = "containerized_geth/geth-sgx-gramine"
+	url = https://github.com/flashbots/geth-sgx-gramine
+
+[submodule "rsa_benchmarking"]
+	path = "rsa_benchmarking"
+	url = https://github.com/lonerapier/rsa_sgx_benchmarking
