@@ -1,0 +1,49 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# Install dependencies
+RUN apt-get update && apt-get install -y sudo build-essential \
+    autoconf bison gawk nasm git cmake pkg-config systemd uuid-dev ninja-build python3 python3-click \
+    python3-jinja2 python3-pyelftools wget libcurl4-openssl-dev \
+    libprotobuf-c-dev protobuf-c-compiler protobuf-compiler \
+    python3-cryptography python3-pip python3-protobuf
+RUN sudo apt install -y linux-headers-$(uname -r)
+RUN sudo python3 -m pip install 'meson>=0.56' 'toml>=0.10'
+
+
+# Add intel-sgx repository to sources
+RUN echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+RUN wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add
+RUN sudo apt-get update
+
+# Install SDK
+RUN wget https://download.01.org/intel-sgx/latest/linux-latest/distro/ubuntu20.04-server/sgx_linux_x64_sdk_2.18.101.1.bin
+RUN chmod +x sgx_linux_x64_sdk_2.18.101.1.bin
+RUN sudo ./sgx_linux_x64_sdk_2.18.101.1.bin --prefix /opt/intel/
+# RUN source /opt/intel/sgxsdk/environment
+RUN sudo apt-get install -y libsgx-enclave-common-dev libsgx-dcap-ql-dev libsgx-dcap-default-qpl-dev
+
+# Install PSW libs and DCAP packages
+RUN sudo apt-get install -y libsgx-epid libsgx-uae-service libsgx-dcap-quote-verify-dev
+
+# Install gramine libos
+WORKDIR /tmp
+RUN git clone https://github.com/gramineproject/gramine.git
+WORKDIR /tmp/gramine
+RUN git checkout v1.3.1
+RUN sudo meson setup build/ --buildtype=release -Ddirect=enabled -Dsgx=enabled -Dsgx_driver=upstream
+RUN sudo ninja -C build/
+WORKDIR /tmp/gramine/build/
+RUN sudo meson install --no-rebuild --destdir /tmp/gramine-install
+
+WORKDIR /opt/intel/sgx-aesm-service/aesm/
+ENV LD_LIBRARY_PATH=.
+# CMD nohup ./aesm_service --no-daemon &
+# CMD ["nohup", "./aesm_service", "--no-daemon", "&"]
+WORKDIR /tmp
+COPY ./run_aesm.sh .
+CMD /bin/bash
+ENTRYPOINT ["run_aesm.sh"]
+
+# ENTRYPOINT nohup ./aesm_service --no-daemon &

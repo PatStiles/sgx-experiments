@@ -9,3 +9,7 @@
 [submodule "rsa_sgx_benchmarking"]
 	path = rsa_benchmarking/rsa_sgx_benchmarking
 	url = https://github.com/lonerapier/rsa_sgx_benchmarking
+
+[submodule "reproducible-builds/gramine"]
+	path = reproducible-builds/gramine
+	url = https://github.com/gramineproject/gramine.git
