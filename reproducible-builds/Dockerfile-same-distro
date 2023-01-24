@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:20.04 as ubuntu20
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -29,21 +29,34 @@ RUN sudo apt-get install -y libsgx-epid libsgx-uae-service libsgx-dcap-quote-ver
 
 # Install gramine libos
 WORKDIR /tmp
-RUN git clone https://github.com/gramineproject/gramine.git
-WORKDIR /tmp/gramine
+RUN git clone https://github.com/gramineproject/gramine.git ./gramine1
+WORKDIR /tmp/gramine1
 RUN git checkout v1.3.1
 RUN sudo meson setup build/ --buildtype=release -Ddirect=enabled -Dsgx=enabled -Dsgx_driver=upstream
 RUN sudo ninja -C build/
-WORKDIR /tmp/gramine/build/
-RUN sudo meson install --no-rebuild --destdir /tmp/gramine-install
+WORKDIR /tmp/gramine1/build/
+RUN sudo meson install --no-rebuild --destdir /tmp/gramine1-install
 
-WORKDIR /opt/intel/sgx-aesm-service/aesm/
-ENV LD_LIBRARY_PATH=.
+WORKDIR /tmp
+RUN git clone https://github.com/gramineproject/gramine.git ./gramine2
+WORKDIR /tmp/gramine2
+RUN git checkout v1.3.1
+RUN sudo meson setup build/ --buildtype=release -Ddirect=enabled -Dsgx=enabled -Dsgx_driver=upstream
+RUN sudo ninja -C build/
+WORKDIR /tmp/gramine2/build/
+RUN sudo meson install --no-rebuild --destdir /tmp/gramine2-install
+
+# WORKDIR /opt/intel/sgx-aesm-service/aesm/
+# ENV LD_LIBRARY_PATH=.
 # CMD nohup ./aesm_service --no-daemon &
 # CMD ["nohup", "./aesm_service", "--no-daemon", "&"]
-WORKDIR /tmp
-COPY ./run_aesm.sh .
-CMD /bin/bash
-ENTRYPOINT ["run_aesm.sh"]
+# WORKDIR /tmp
+# COPY ./run_aesm.sh .
+# CMD /bin/bash
+# ENTRYPOINT ["run_aesm.sh"]
 
 # ENTRYPOINT nohup ./aesm_service --no-daemon &
+
+FROM registry.salsa.debian.org/reproducible-builds/diffoscope AS diffoscope
+COPY --from=ubuntu20 /tmp/gramine1-install/ /tmp/ubuntu20/
+COPY --from=ubuntu20 /tmp/gramine2-install/ /tmp/ubuntu22/

@@ -1,0 +1,19 @@
+FROM debian:buster AS debian
+RUN apt-get update && apt-get install -y sudo build-essential \
+    autoconf bison gawk nasm git cmake pkg-config systemd uuid-dev ninja-build python3 python3-click \
+    python3-jinja2 python3-pyelftools wget libcurl4-openssl-dev \
+    libprotobuf-c-dev protobuf-c-compiler protobuf-compiler \
+    python3-cryptography python3-pip python3-protobuf
+RUN sudo python3 -m pip install 'meson>=0.56' 'toml>=0.10'
+RUN mkdir /opt/intel
+WORKDIR /opt/intel
+RUN sudo wget https://download.01.org/intel-sgx/latest/linux-latest/distro/Debian10/sgx_debian_local_repo.tgz
+RUN sudo tar xvf sgx_debian_local_repo.tgz
+RUN echo 'deb [trusted=yes arch=amd64] file:/opt/intel/sgx_debian_local_repo buster main' | sudo tee /etc/apt/sources.list.d/sgx_debian_local_repo.list
+RUN sudo apt-get update
+RUN sudo apt-get install libsgx-epid libsgx-quote-ex libsgx-dcap-ql
+
+WORKDIR /
+RUN wget https://download.01.org/intel-sgx/latest/linux-latest/distro/Debian10/sgx_linux_x64_sdk_2.18.101.1.bin
+RUN chmod +x sgx_linux_x64_sdk_2.18.101.1.bin
+RUN sudo ./sgx_linux_x64_sdk_2.18.101.1.bin --prefix /opt/intel/

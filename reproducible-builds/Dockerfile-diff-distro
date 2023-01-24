@@ -1,0 +1,81 @@
+FROM ubuntu:20.04 as ubuntu20
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# Install dependencies
+RUN apt-get update && apt-get install -y sudo build-essential \
+    autoconf bison gawk nasm git cmake pkg-config systemd uuid-dev ninja-build python3 python3-click \
+    python3-jinja2 python3-pyelftools wget libcurl4-openssl-dev \
+    libprotobuf-c-dev protobuf-c-compiler protobuf-compiler \
+    python3-cryptography python3-pip python3-protobuf
+RUN sudo apt install -y linux-headers-$(uname -r)
+RUN sudo python3 -m pip install 'meson>=0.56' 'toml>=0.10'
+
+
+# Add intel-sgx repository to sources
+RUN echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+RUN wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add
+RUN sudo apt-get update
+
+# Install SDK
+RUN wget https://download.01.org/intel-sgx/latest/linux-latest/distro/ubuntu20.04-server/sgx_linux_x64_sdk_2.18.101.1.bin
+RUN chmod +x sgx_linux_x64_sdk_2.18.101.1.bin
+RUN sudo ./sgx_linux_x64_sdk_2.18.101.1.bin --prefix /opt/intel/
+# RUN source /opt/intel/sgxsdk/environment
+RUN sudo apt-get install -y libsgx-enclave-common-dev libsgx-dcap-ql-dev libsgx-dcap-default-qpl-dev
+
+# Install PSW libs and DCAP packages
+RUN sudo apt-get install -y libsgx-epid libsgx-uae-service libsgx-dcap-quote-verify-dev
+
+# Install gramine libos
+WORKDIR /tmp
+RUN git clone https://github.com/gramineproject/gramine.git ./gramine
+WORKDIR /tmp/gramine
+RUN git checkout v1.3.1
+RUN sudo meson setup build/ --buildtype=release -Ddirect=enabled -Dsgx=enabled -Dsgx_driver=upstream
+RUN sudo ninja -C build/
+WORKDIR /tmp/gramine/build/
+RUN sudo meson install --no-rebuild --destdir /tmp/gramine-install
+
+FROM ubuntu:22.04 as ubuntu22
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update && apt-get install -y sudo build-essential \
+    autoconf bison gawk nasm git cmake pkg-config systemd uuid-dev ninja-build python3 python3-click \
+    python3-jinja2 python3-pyelftools wget libcurl4-openssl-dev \
+    libprotobuf-c-dev protobuf-c-compiler protobuf-compiler \
+    python3-cryptography python3-pip python3-protobuf
+RUN sudo apt install -y linux-headers-$(uname -r)
+RUN sudo python3 -m pip install 'meson>=0.56' 'toml>=0.10'
+
+RUN echo 'deb [signed-by=/etc/apt/keyrings/intel-sgx-keyring.asc arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+RUN wget https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key
+RUN cat intel-sgx-deb.key | sudo tee /etc/apt/keyrings/intel-sgx-keyring.asc > /dev/null
+
+RUN sudo apt-get update
+RUN sudo apt-get install -y libsgx-epid libsgx-quote-ex libsgx-dcap-ql
+RUN sudo apt-get install -y libsgx-dcap-default-qpl
+
+RUN wget https://download.01.org/intel-sgx/latest/linux-latest/distro/ubuntu22.04-server/sgx_linux_x64_sdk_2.18.101.1.bin
+RUN chmod +x sgx_linux_x64_sdk_2.18.101.1.bin
+RUN sudo ./sgx_linux_x64_sdk_2.18.101.1.bin --prefix /opt/intel
+# RUN source /opt/intel/sgxsdk/environment
+RUN sudo apt-get install -y libsgx-enclave-common-dev libsgx-dcap-ql-dev libsgx-dcap-default-qpl-dev
+
+# Install PSW libs and DCAP packages
+RUN sudo apt-get install -y libsgx-epid libsgx-uae-service libsgx-dcap-quote-verify-dev
+
+# Install gramine libos
+WORKDIR /tmp
+RUN git clone https://github.com/gramineproject/gramine.git
+WORKDIR /tmp/gramine
+RUN git checkout v1.3.1
+RUN sudo meson setup build/ --buildtype=release -Ddirect=enabled -Dsgx=enabled -Dsgx_driver=upstream
+RUN sudo ninja -C build/
+WORKDIR /tmp/gramine/build/
+# RUN sudo meson install --no-rebuild --destdir /tmp/gramine-install
+
+FROM registry.salsa.debian.org/reproducible-builds/diffoscope AS diffoscope
+COPY --from=ubuntu20 /tmp/gramine-install/ /tmp/ubuntu20/
+COPY --from=ubuntu22 /tmp/gramine-install/ /tmp/ubuntu22/
