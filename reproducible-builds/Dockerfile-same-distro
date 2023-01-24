@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 as ubuntu20
+FROM ubuntu:20.04 as ubuntu-gramine
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -58,5 +58,5 @@ RUN sudo meson install --no-rebuild --destdir /tmp/gramine2-install
 # ENTRYPOINT nohup ./aesm_service --no-daemon &
 
 FROM registry.salsa.debian.org/reproducible-builds/diffoscope AS diffoscope
-COPY --from=ubuntu20 /tmp/gramine1-install/ /tmp/ubuntu20/
-COPY --from=ubuntu20 /tmp/gramine2-install/ /tmp/ubuntu22/
+COPY --from=ubuntu-gramine /tmp/gramine1-install/ /gramine1/
+COPY --from=ubuntu-gramine /tmp/gramine2-install/ /gramine2/

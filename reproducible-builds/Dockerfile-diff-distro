@@ -74,8 +74,8 @@ RUN git checkout v1.3.1
 RUN sudo meson setup build/ --buildtype=release -Ddirect=enabled -Dsgx=enabled -Dsgx_driver=upstream
 RUN sudo ninja -C build/
 WORKDIR /tmp/gramine/build/
-# RUN sudo meson install --no-rebuild --destdir /tmp/gramine-install
+RUN sudo meson install --no-rebuild --destdir /tmp/gramine-install
 
 FROM registry.salsa.debian.org/reproducible-builds/diffoscope AS diffoscope
-COPY --from=ubuntu20 /tmp/gramine-install/ /tmp/ubuntu20/
-COPY --from=ubuntu22 /tmp/gramine-install/ /tmp/ubuntu22/
+COPY --from=ubuntu20 /tmp/gramine-install/ /ubuntu20/
+COPY --from=ubuntu22 /tmp/gramine-install/ /ubuntu22/

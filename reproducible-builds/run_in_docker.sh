@@ -2,6 +2,7 @@
 
 set -e
 sudo docker build -t diffoscope -f ./Dockerfile-same-distro .
-sudo docker build -t diffoscope -f ./Dockerfile-diff-distro .
+sudo docker run --rm --read-only --tmpfs /tmp -t diffoscope /gramine1/ /gramine2/ > result-same-distro.diff
 
-sudo docker run --rm -t -w /tmp diffoscope ./ubuntu20/ ./ubuntu22/
+# sudo docker build -t diffoscope -f ./Dockerfile-diff-distro .
+# sudo docker run --rm --read-only --tmpfs /tmp -t diffoscope /ubuntu20/ /ubuntu22/ > result-diff-distro.diff
