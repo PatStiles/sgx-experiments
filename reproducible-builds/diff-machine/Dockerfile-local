@@ -1,0 +1,14 @@
+FROM gramine-diff as ubuntu-gramine
+
+WORKDIR /tmp
+RUN git clone https://github.com/gramineproject/gramine.git ./gramine2
+WORKDIR /tmp/gramine2
+RUN git checkout v1.3.1
+RUN sudo meson setup build/ --buildtype=release -Ddirect=enabled -Dsgx=enabled -Dsgx_driver_include_path=/usr/src/linux-headers-5.15.0-1028-aws/arch/x86/include/uapi
+RUN sudo ninja -C build/
+WORKDIR /tmp/gramine2/build/
+RUN sudo meson install --no-rebuild --destdir /tmp/gramine2-install
+
+FROM registry.salsa.debian.org/reproducible-builds/diffoscope AS diffoscope
+COPY --from=ubuntu-gramine /tmp/gramine1-install/ /gramine1/
+COPY --from=ubuntu-gramine /tmp/gramine2-install/ /gramine2/
