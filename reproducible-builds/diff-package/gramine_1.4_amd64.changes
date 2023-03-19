@@ -1,0 +1,56 @@
+Format: 1.8
+Date: Sun, 12 Feb 2023 00:00:00 +0100
+Source: gramine
+Binary: gramine gramine-dcap gramine-ratls-dcap gramine-ratls-epid
+Architecture: source all amd64
+Version: 1.4
+Distribution: bullseye bookworm bionic focal jammy
+Urgency: medium
+Maintainer: Wojtek Porczyk <woju@invisiblethingslab.com>
+Changed-By: Wojtek Porczyk <woju@invisiblethingslab.com>
+Description:
+ gramine    - A lightweight usermode guest OS designed to run a single Linux ap
+ gramine-dcap - transitional package
+ gramine-ratls-dcap - DCAP-based Remote Attestation TLS (RA-TLS) library for Gramine
+ gramine-ratls-epid - EPID-based Remote Attestation TLS (RA-TLS) library for Gramine
+Changes:
+ gramine (1.4) bullseye bookworm bionic focal jammy; urgency=medium
+ .
+   [ Wojtek Porczyk ]
+   * remove python3-protobuf dependency
+   * add perl dependency
+   * fix conflicting files in RA-TLS packages
+   * add minimal version to ninja-build
+   * optionally build against either linux-libc-dev (the default) or
+     linux-sources-* (as before)
+   * fix clean to not remove meson packagecache
+ .
+   [ Mariusz Zaborski ]
+   * add gramine-dcap transitional package
+ .
+   [ Dmitrii Kuvaiskii ]
+   * package mbedtls_gramine
+Checksums-Sha1:
+ 008db22874f4dfa496f808759b40f73e2710c6d4 1267 gramine_1.4.dsc
+ a66495f1d3ec673f95bf909f6e0b609991c9b1c3 104922036 gramine_1.4.tar.xz
+ cb246113ef83ec7c81fd386113da11a3797092a5 3152 gramine-dcap_1.4_all.deb
+ 4f06b00c529419b0d81ceb446bc0144b3c8a8d67 392800 gramine-ratls-dcap_1.4_amd64.deb
+ 5c826bcd7e2880d7728ae729e9f7eb51ad1574a8 482780 gramine-ratls-epid_1.4_amd64.deb
+ 2f0860ca9f7680e1a6de5f6ddc33b687f843e93e 8902 gramine_1.4_amd64.buildinfo
+ 62c2161d9a070680be4c0121f95b11827f81b460 3613920 gramine_1.4_amd64.deb
+Checksums-Sha256:
+ 3c4424efdc11c3bcb71d98ca781cf490dc7ec5decf108d3c882de3c9d7da6aca 1267 gramine_1.4.dsc
+ b639f86bbf25af4f3635f83ee523933f7bb3130ff4db91a65cd23001f396b303 104922036 gramine_1.4.tar.xz
+ b95ee8df9cc195f11ac7dd9546cc65c1341c464665b33fda15fed4ee91c67e32 3152 gramine-dcap_1.4_all.deb
+ 04543cec27f1f311f0a19452066abeba02fceebdca0ef37811a8590f7909ce4b 392800 gramine-ratls-dcap_1.4_amd64.deb
+ 628cd2a435b26c2365bd88b0acca1b34acfb03674933b99f08332b5d56ab2dc6 482780 gramine-ratls-epid_1.4_amd64.deb
+ d9f0694874f47cfcb933bcf3af6f8c2d27a96fafd131bd17e6030bdf42a7ff86 8902 gramine_1.4_amd64.buildinfo
+ bbe14c2b68b01f692c84543d1e7142d828882f75a53786adcab3e39c69fecb45 3613920 gramine_1.4_amd64.deb
+Files:
+ 47106bcd3cfefc6b9fa25c50c2bbca15 1267 misc optional gramine_1.4.dsc
+ f323d782236312b7e5e4a44ae9753342 104922036 misc optional gramine_1.4.tar.xz
+ d489fee90318a7fc7bcfa04eaa1f0576 3152 oldlibs optional gramine-dcap_1.4_all.deb
+ c29077c210fee3c8906b33535637791a 392800 misc optional gramine-ratls-dcap_1.4_amd64.deb
+ 5d3ccf4db7fdc32164e39724748c09d3 482780 misc optional gramine-ratls-epid_1.4_amd64.deb
+ e4678c1ef617c281b6df1335f407e3f5 8902 misc optional gramine_1.4_amd64.buildinfo
+ cf41a83bd016c58b27816f88b79fcf8c 3613920 misc optional gramine_1.4_amd64.deb

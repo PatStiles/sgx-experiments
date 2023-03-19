@@ -1,0 +1,40 @@
+FROM debian:bullseye-backports AS debian
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y sudo \
+    ca-certificates devscripts jq git wget
+
+# Add intel-sgx repository to sources
+RUN echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+RUN wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add
+RUN sudo apt-get update
+
+RUN git clone https://github.com/gramineproject/gramine /home/gramine
+WORKDIR /home/gramine
+RUN git checkout v1.4
+RUN mkdir /debian
+RUN cp /home/gramine/debian/control /debian
+RUN apt-get update && apt-get -y build-dep -t bullseye-backports --no-install-recommends --no-install-suggests /
+
+RUN rm -rf "/home/gramine/build-dist"
+RUN meson setup build-dist/ -Dskeleton=enabled -Dglibc=enabled -Dmusl=enabled -Dlibgomp=enabled
+RUN ls -la
+RUN git status
+RUN meson dist -C build-dist/ --no-tests --include-subprojects --formats=gztar
+
+RUN cp /home/gramine/build-dist/meson-dist/gramine-1.4.tar.gz /tmp
+WORKDIR /tmp
+RUN tar -xzf gramine-*.tar.gz
+WORKDIR gramine-1.4
+RUN debuild -uc -us
+RUN ls -la /tmp
+
+WORKDIR /home
+RUN wget https://github.com/gramineproject/gramine/releases/download/v1.4/gramine_1.4_amd64.deb
+
+# FROM registry.salsa.debian.org/reproducible-builds/diffoscope AS diffoscope
+# COPY --from=debian /tmp/gramine_1.4_amd64.deb /home/gramine1.deb
+# COPY --from=debian /home/gramine_1.4_amd64.deb /home/gramine2.deb
+# RUN ls -la /tmp
+
